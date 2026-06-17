@@ -8,6 +8,9 @@ from web.web_assets import build_page, get_auth, form_wrapper
 
 actor_routes = web.RouteTableDef()
 
+# ─────────────────────────────────────────────────────────
+# 🎭 PUBLIC VIEW: ACTORS DIRECTORY CATALOG PAGE
+# ─────────────────────────────────────────────────────────
 @actor_routes.get('/actors')
 async def actors_directory_page(req):
     role, _ = await get_auth(req)
@@ -19,31 +22,65 @@ async def actors_directory_page(req):
     h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px;">'
     for act in all_actors:
         aid = str(act["_id"])
-        h += f'<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="location.href=\'/actor/{aid}\'"><div style="position:relative;padding-top:135%;background:var(--bg3);"><img src="/api/actor/photo?id={aid}&t={int(act.get("created_at",0))}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div><div style="padding:12px;text-align:center;font-size:14px;font-weight:700;color:var(--text);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">{html.escape(act.get("name",""))}</div></div>'
+        v_time = int(float(act.get("created_at", time.time())))
+        h += f'<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="location.href=\'/actor/{aid}\'"><div style="position:relative;padding-top:135%;background:var(--bg3);"><img src="/api/actor/photo?id={aid}&v={v_time}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div><div style="padding:12px;text-align:center;font-size:14px;font-weight:700;color:var(--text);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">{html.escape(act.get("name",""))}</div></div>'
     h += '</div>' if all_actors else '<div style="color:var(--muted);text-align:center;padding:60px 20px;">🎭 No star profiles created yet.</div>'
 
     body = f'<div class="main" style="padding-top:30px;max-width:1100px;margin:0 auto;padding-left:20px;padding-right:20px;"><div style="margin-bottom:20px;"><h1 style="font-size:28px;font-weight:900;color:var(--text);margin-bottom:4px;">🎭 Actors Catalog</h1><p style="color:var(--muted);font-size:14px;">Browse star profiles and content grids.</p></div>{admin_btn}{h}</div>'
     return build_page("Actors Directory - Fast Finder", body, "", "actors", role)
 
+# ─────────────────────────────────────────────────────────
+# 🎭 ADMIN VIEW: CREATE ACTOR PROFILE PAGE FORM
+# ─────────────────────────────────────────────────────────
 @actor_routes.get('/admin/create_actor')
 async def create_actor_page(req):
     role, _ = await get_auth(req)
     if role != 'admin': return web.HTTPFound('/dashboard')
-    content = '<form action="/api/create_actor" method="post" enctype="multipart/form-data"><input type="text" name="name" placeholder="Actor Full Name" required><textarea name="bio" placeholder="Biography Details..." style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;min-height:100px;margin-bottom:15px;font-family:inherit;" required></textarea><div class="scard-label" style="margin-bottom:4px;color:var(--muted);">Search Tags (Comma Separated)</div><input type="text" name="tags" placeholder="e.g. SRK, Shahrukh" style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;margin-bottom:15px;"><div class="scard-label" style="margin-bottom:8px;color:var(--muted);">Profile Photo</div><input type="file" name="photo" accept="image/*" required style="color:var(--text);"><button class="submit-btn" type="submit">Create Actor Profile</button></form><div style="margin-top:15px;text-align:center;"><a href="/actors" style="color:var(--muted);text-decoration:none;font-size:13px;">← Back to Catalog</a></div>'
+    
+    content = '''
+    <form action="/api/create_actor" method="post" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Actor Full Name (e.g. Shah Rukh Khan)" required>
+        <textarea name="bio" placeholder="Biography Details..." style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;min-height:100px;margin-bottom:15px;font-family:inherit;" required></textarea>
+        
+        <div class="scard-label" style="margin-bottom:4px;color:var(--muted);">Search Tags (Comma Separated)</div>
+        <input type="text" name="tags" placeholder="e.g. SRK, Shahrukh" style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;margin-bottom:15px;">
+        
+        <div class="scard-label" style="margin-bottom:4px;color:var(--muted);">Instagram Profile Link</div>
+        <input type="url" name="insta" placeholder="https://instagram.com/..." style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;margin-bottom:15px;">
+        
+        <div class="scard-label" style="margin-bottom:4px;color:var(--muted);">YouTube Channel Link</div>
+        <input type="url" name="yt" placeholder="https://youtube.com/..." style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;margin-bottom:15px;">
+        
+        <div class="scard-label" style="margin-bottom:4px;color:var(--muted);">Twitter / X Profile Link</div>
+        <input type="url" name="twitter" placeholder="https://x.com/..." style="width:100%;background:var(--bg3);border:1px solid var(--border);padding:12px;color:var(--text);border-radius:6px;margin-bottom:15px;">
+
+        <div class="scard-label" style="margin-bottom:8px;color:var(--muted);">Profile Photo</div>
+        <input type="file" name="photo" accept="image/*" required style="color:var(--text);margin-bottom:15px;"><br>
+        
+        <button class="submit-btn" type="submit">Create Actor Profile</button>
+    </form>
+    <div style="margin-top:15px;text-align:center;"><a href="/actors" style="color:var(--muted);text-decoration:none;font-size:13px;">← Back to Catalog</a></div>
+    '''
     return build_page("Create Actor Profile", form_wrapper("Add New Actor", content, req.query.get('err',''), req.query.get('msg','')), "login-bg", "actors", role)
 
+# ─────────────────────────────────────────────────────────
+# ⚙️ ADMIN API: CREATE ACTOR ROUTE GATEWAY
+# ─────────────────────────────────────────────────────────
 @actor_routes.post('/api/create_actor')
 async def api_create_actor(req):
     if (await get_auth(req))[0] != 'admin': return web.json_response({"error":"Unauthorized"}, status=403)
     try:
         r = await req.multipart()
-        name, bio, tags_raw, img_bytes = None, None, "", None
+        name, bio, tags_raw, insta, yt, twitter, img_bytes = None, None, "", "", "", "", None
         while True:
             p = await r.next()
             if p is None: break
             if p.name == 'name': name = (await p.read()).decode().strip()
             elif p.name == 'bio': bio = (await p.read()).decode().strip()
             elif p.name == 'tags': tags_raw = (await p.read()).decode().strip()
+            elif p.name == 'insta': insta = (await p.read()).decode().strip()
+            elif p.name == 'yt': yt = (await p.read()).decode().strip()
+            elif p.name == 'twitter': twitter = (await p.read()).decode().strip()
             elif p.name == 'photo': img_bytes = await p.read()
         if not name or not bio or not img_bytes: return web.HTTPFound('/admin/create_actor?err=Missing fields')
         
@@ -52,10 +89,17 @@ async def api_create_actor(req):
             msg = await temp.BOT.send_photo(chat_id=BIN_CHANNEL, photo=buf)
         fid = msg.photo.sizes[-1].file_id if hasattr(msg.photo,"sizes") and msg.photo.sizes else msg.photo.file_id
         
-        await actors.insert_one({"name":name,"bio":bio,"tags":[t.strip() for t in tags_raw.split(",") if t.strip()],"photo_url":f"TG_ID:{fid}","social_links":{"instagram":"","youtube":"","twitter":""},"gallery":[],"created_at":time.time()})
+        await actors.insert_one({
+            "name": name, "bio": bio, "tags": [t.strip() for t in tags_raw.split(",") if t.strip()],
+            "photo_url": f"TG_ID:{fid}", "social_links": {"instagram": insta, "youtube": yt, "twitter": twitter},
+            "gallery": [], "created_at": time.time()
+        })
         return web.HTTPFound('/actors?msg=Success')
     except Exception as e: return web.HTTPFound(f'/admin/create_actor?err={str(e)}')
 
+# ─────────────────────────────────────────────────────────
+# 🌐 PUBLIC VIEW: ACTOR PROFILE MASTER INTERFACE
+# ─────────────────────────────────────────────────────────
 @actor_routes.get('/actor/{id}')
 async def actor_profile_display(req):
     role, _ = await get_auth(req)
@@ -67,14 +111,19 @@ async def actor_profile_display(req):
     except: return web.Response(text="Invalid ID", status=400)
     
     act_name = act.get("name", "")
-    safe_bio = html.escape(act.get("bio", "")) # ✅ फिक्स: safe_bio वेरिएबल को डिफाइन कर दिया गया है
+    safe_bio = html.escape(act.get("bio", ""))
     social = act.get("social_links", {})
     gallery_list = act.get("gallery", [])
     t_payload = html.escape(json.dumps(act.get("tags", [])))
     
-    chips = "".join([f'<span style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600;">#{html.escape(t)}</span>' for t in act.get("tags",[])])
-    soc_html = "".join([f'<a href="{html.escape(social[k])}" target="_blank" style="background:{"#ff007f" if k=="instagram" else "#ff0000" if k=="youtube" else "#1da1f2"};color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;">{"📸 Instagram" if k=="instagram" else "📺 YouTube" if k=="youtube" else "🐦 Twitter"}</a>' for k in ["instagram","youtube","twitter"] if social.get(k)])
+    v_time = int(float(act.get("created_at", time.time())))
+    chips = "".join([f'<span style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600;margin-right:4px;margin-bottom:4px;">#{html.escape(t)}</span>' for t in act.get("tags",[])])
     
+    soc_html = ""
+    if social.get("instagram"): soc_html += f'<a href="{html.escape(social["instagram"])}" target="_blank" style="background:#ff007f;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;margin-right:8px;">📸 Instagram</a>'
+    if social.get("youtube"): soc_html += f'<a href="{html.escape(social["youtube"])}" target="_blank" style="background:#ff0000;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;margin-right:8px;">📺 YouTube</a>'
+    if social.get("twitter"): soc_html += f'<a href="{html.escape(social["twitter"])}" target="_blank" style="background:#1da1f2;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;margin-right:8px;">🐦 Twitter</a>'
+
     gal_html = f'<div style="background:var(--card);border:1px dashed var(--border);padding:20px;border-radius:8px;text-align:center;margin-bottom:20px;"><form action="/api/actor/gallery_upload" method="post" enctype="multipart/form-data"><input type="hidden" name="actor_id" value="{aid}"><label style="background:var(--accent);color:#fff;padding:10px 20px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;display:inline-block;">📂 Add Image to Gallery<input type="file" name="gallery_img" accept="image/*" style="display:none;" onchange="this.form.submit()"></label></form></div>' if role=='admin' else ""
     if gallery_list:
         gal_html += '<div class="gallery-grid">'
@@ -149,11 +198,11 @@ async def actor_profile_display(req):
         <div style="margin-bottom:15px;"><a href="/actors" style="color:var(--muted);text-decoration:none;font-size:14px;font-weight:700;">← Back to Catalog</a></div>
         <div style="display:flex;gap:25px;background:var(--card);border:1px solid var(--border);padding:25px;border-radius:12px;margin-bottom:35px;flex-wrap:wrap;">
             <div style="width:160px;height:220px;background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;">
-                <img id="actorMasterAvatarImage" src="/api/actor/photo?id={aid}&t={int(act.get("created_at",0))}" style="width:100%;height:100%;object-fit:cover;">
+                <img id="actorMasterAvatarImage" src="/api/actor/photo?id={aid}&v={v_time}" style="width:100%;height:100%;object-fit:cover;">
             </div>
             <div style="flex:1;min-width:300px;display:flex;flex-direction:column;justify-content:center;">
                 <h1 style="font-size:32px;font-weight:900;color:var(--text);margin-bottom:2px;">{html.escape(act_name)}</h1>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">{chips}</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;">{chips}</div>
                 <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">{soc_html}</div>
                 {adm_act}
             </div>
@@ -257,6 +306,9 @@ async def actor_profile_display(req):
                 grid.innerHTML=h; actNextOffset=d.next_offset; document.getElementById('actor_page_box').style.display='flex'; document.getElementById('actor_pBtn').disabled=(actOffset===0);document.getElementById('actor_nBtn').disabled=!actNextOffset;document.getElementById('actor_pgInfo').textContent='Page '+actCurPage;
             }} catch(e){{ grid.innerHTML='<div class="empty"><p>Sync timeout error.</p></div>'; }}
         }}
+
+        function openActorEditModal() {{ document.getElementById('actorEditModal').classList.add('open'); }}
+        function closeActorEditModal() {{ document.getElementById('actorEditModal').classList.remove('open'); }}
 
         async function updateActorAvatar(actorId) {{
             var input=document.getElementById('avatarUpdateInput'); if(!input.files||!input.files[0]) return;
