@@ -37,7 +37,7 @@ body{{background:linear-gradient(to bottom,var(--bg1),var(--bg2));font-family:'D
 .hero-container{{width:100%;max-width:1350px;margin:auto;padding:110px 20px 40px;}}
 .player-box{{width:100%;border-radius:12px;background:var(--box);border:1px solid var(--box-bd);position:relative;box-shadow:0 0 20px rgba(255,0,0,.1),0 20px 60px rgba(0,0,0,.5);overflow:hidden;transition:background .3s,border-color .3s;}}
 video{{width:100%;height:auto;display:block;}}
-.skip-zone{{position:absolute;top:0;bottom:25%;width:40%;z-index:20;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}}
+.skip-zone{{position:absolute;top:0;bottom:35%;width:30%;z-index:20;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}}
 .skip-zone.left{{left:0;}} .skip-zone.right{{right:0;}}
 .skip-ripple{{position:absolute;inset:0;background:rgba(255,255,255,.12);opacity:0;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}}
 html.light .skip-ripple{{background:rgba(0,0,0,.1);}}
